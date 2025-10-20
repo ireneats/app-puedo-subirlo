@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Puedo Subirlo? - Gemini & NotebookLM Binter</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const PuedoSubirloApp = () => {
+          const [searchTerm, setSearchTerm] = useState('');
+          const [selectedCategory, setSelectedCategory] = useState('todos');
+          const [selectedResult, setSelectedResult] = useState(null);
+
+          const categories = [
+            { id: 'todos', name: 'Todos', icon: '📋' },
+            { id: 'personal', name: 'Datos Personales', icon: '👤' },
+            { id: 'operaciones', name: 'Operaciones', icon: '✈️' },
+            { id: 'rrhh', name: 'RRHH', icon: '👥' },
+            { id: 'comercial', name: 'Comercial', icon: '💼' },
+            { id: 'finanzas', name: 'Finanzas', icon: '💰' },
+            { id: 'legal', name: 'Legal', icon: '⚖️' },
+            { id: 'it', name: 'IT', icon: '💻' },
+            { id: 'cliente', name: 'Clientes', icon: '🤝' },
+          ];
+
+          const casosData = [
+            {
+              id: 1,
+              categoria: 'personal',
+              pregunta: 'DNI o pasaporte de cliente',
+              keywords: ['dni', 'pasaporte', 'identificacion', 'documento identidad'],
+              semaforo: 'prohibido',
+              respuestaCorta: 'PROHIBIDO - Violación del principio de minimización',
+              explicacion: 'Los DNI/pasaportes son datos personales de alta sensibilidad. No hay justificación legítima para procesarlos con IA.',
+              baseLegal: 'RGPD Art. 5.1.c (minimización) + Art. 32 (seguridad). AI Act Art. 10 - identificación biométrica = alto riesgo',
+              alternativa: '✅ Puedes: Usar número de reserva o ID interno anonimizado',
+              multa: 'Hasta 20M€ o 4% facturación global'
+            },
+            {
+              id: 2,
+              categoria: 'personal',
+              pregunta: 'Email con datos de un cliente',
+              keywords: ['email', 'correo', 'mensaje'],
+              semaforo: 'cuidado',
+              respuestaCorta: 'CUIDADO - Solo si anonimizan COMPLETAMENTE',
+              explicacion: 'Los emails contienen datos personales. La anonimización debe ser IRREVERSIBLE.',
+              baseLegal: 'RGPD Art. 5.1.c minimización + Considerando 26 (anonimización irreversible)',
+              alternativa: '✅ Puedes: Copiar solo el contenido borrando nombres, emails, teléfonos',
+              multa: 'Multas de hasta 10M€ o 2% facturación'
+            },
+            {
+              id: 3,
+              categoria: 'personal',
+              pregunta: 'Información médica de pasajeros',
+              keywords: ['medico', 'salud', 'enfermedad', 'certificado medico', 'baja'],
+              semaforo: 'prohibido',
+              respuestaCorta: 'TOTALMENTE PROHIBIDO - Datos de salud categoría especial',
+              explicacion: 'Datos de salud tienen la máxima protección legal. Prohibición expresa en RGPD.',
+              baseLegal: 'RGPD Art. 9.1 prohibición datos salud. AI Act protección grupos vulnerables',
+              alternativa: '❌ No hay alternativa - NO subir bajo ninguna circunstancia',
+              multa: 'Hasta 20M€ o 4% facturación + posible delito penal'
+            },
+            {
+              id: 4,
+              categoria: 'operaciones',
+              pregunta: 'Planes de seguridad aeroportuaria',
+              keywords: ['seguridad aeropuerto', 'protocolo seguridad', 'plan seguridad'],
+              semaforo: 'prohibido',
+              respuestaCorta: 'PROHIBIDO - Información clasificada que facilita terrorismo',
+              explicacion: 'Es DELITO. Pérdida automática de certificaciones AESA.',
+              baseLegal: 'Reglamento UE 300/2008 aviación civil. Facilitar terrorismo = delito penal',
+              alternativa: '❌ No hay alternativa - máxima confidencialidad',
+              multa: 'Responsabilidad penal + pérdida certificaciones'
+            },
+            {
+              id: 5,
+              categoria: 'operaciones',
+              pregunta: 'Horarios de vuelos publicados en web',
+              keywords: ['horarios', 'vuelos publicos', 'programacion'],
+              semaforo: 'permitido',
+              respuestaCorta: 'PERMITIDO - Información ya pública',
+              explicacion: 'Los horarios publicados en vuestra web son información pública. Uso libre.',
+              baseLegal: 'Información pública = sin restricción de uso interno',
+              alternativa: '✅ Úsalo libremente para análisis, planificación, etc.',
+              multa: 'N/A - Permitido'
+            },
+            {
+              id: 6,
+              categoria: 'rrhh',
+              pregunta: 'Contrato laboral de un empleado',
+              keywords: ['contrato', 'laboral', 'trabajo'],
+              semaforo: 'prohibido',
+              respuestaCorta: 'PROHIBIDO - Datos personales laborales sensibles',
+              explicacion: 'Contienen datos personales, salarios y condiciones confidenciales.',
+              baseLegal: 'RGPD Art. 88 contexto laboral + Estatuto Trabajadores. AI Act alto riesgo',
+              alternativa: '✅ Puedes: Usar plantilla vacía o tu propio contrato',
+              multa: 'Hasta 20M€ o 4% facturación'
+            },
+            {
+              id: 7,
+              categoria: 'rrhh',
+              pregunta: 'Plantilla de contrato vacía',
+              keywords: ['plantilla', 'modelo', 'vacio'],
+              semaforo: 'permitido',
+              respuestaCorta: 'PERMITIDO - Sin datos reales = sin riesgo',
+              explicacion: 'Plantillas vacías sin datos personales son herramientas útiles.',
+              baseLegal: 'Sin datos personales = RGPD no aplica',
+              alternativa: '✅ Perfecto para mejorar documentos estándar',
+              multa: 'N/A - Permitido'
+            },
+            {
+              id: 8,
+              categoria: 'comercial',
+              pregunta: 'Estrategia de precios confidencial',
+              keywords: ['precio', 'pricing', 'tarifa', 'estrategia comercial'],
+              semaforo: 'prohibido',
+              respuestaCorta: 'PROHIBIDO - Secreto empresarial crítico',
+              explicacion: 'Ventaja competitiva directa. Si llega a competidores = pérdida millonaria.',
+              baseLegal: 'Ley 1/2019 secretos empresariales + Art. 101 TFUE (posible colusión)',
+              alternativa: '✅ Puedes: Analizar precios PÚBLICOS de competidores',
+              multa: 'Responsabilidad por daños millonarios'
+            },
+            {
+              id: 9,
+              categoria: 'comercial',
+              pregunta: 'Precios públicos de la competencia',
+              keywords: ['competencia', 'benchmark', 'comparar precios'],
+              semaforo: 'permitido',
+              respuestaCorta: 'PERMITIDO - Inteligencia competitiva legal',
+              explicacion: 'Analizar precios públicos de competidores es perfectamente legal.',
+              baseLegal: 'Información pública = análisis competitivo legítimo',
+              alternativa: '✅ Excelente para benchmarking y estrategia',
+              multa: 'N/A - Permitido'
+            },
+            {
+              id: 10,
+              categoria: 'finanzas',
+              pregunta: 'Previsiones financieras no publicadas',
+              keywords: ['prevision', 'forecast', 'proyeccion', 'financiera'],
+              semaforo: 'prohibido',
+              respuestaCorta: 'PROHIBIDO - Posible información privilegiada (DELITO si cotiza)',
+              explicacion: 'Si Binter cotiza = información privilegiada. Delito de abuso de mercado.',
+              baseLegal: 'Reglamento MAR UE 596/2014. Art. 284 Código Penal: prisión hasta 6 años',
+              alternativa: '✅ Puedes: Usar cuentas anuales YA PUBLICADAS',
+              multa: 'Multas hasta 5M€ + PRISIÓN hasta 6 años'
+            },
+            {
+              id: 11,
+              categoria: 'finanzas',
+              pregunta: 'Cuentas anuales ya publicadas en Registro Mercantil',
+              keywords: ['cuentas anuales', 'publicadas', 'registro mercantil'],
+              semaforo: 'permitido',
+              respuestaCorta: 'PERMITIDO - Información ya pública legalmente',
+              explicacion: 'Las cuentas publicadas en Registro Mercantil son públicas. Uso libre.',
+              baseLegal: 'Código Comercio obliga publicación = información pública',
+              alternativa: '✅ Úsalas para análisis, ratios, benchmarking',
+              multa: 'N/A - Permitido'
+            },
+            {
+              id: 12,
+              categoria: 'legal',
+              pregunta: 'Documentación de litigio activo',
+              keywords: ['litigio', 'juicio', 'demanda', 'pleito'],
+              semaforo: 'prohibido',
+              respuestaCorta: 'TOTALMENTE PROHIBIDO - Privilegio legal absoluto',
+              explicacion: 'Secreto profesional abogado-cliente. Si se divulga SE PIERDE EL PRIVILEGIO.',
+              baseLegal: 'Art. 542 LOPJ secreto profesional. Evidencia puede usarse CONTRA vosotros',
+              alternativa: '❌ Consultar directamente con departamento legal',
+              multa: 'Pérdida de privilegio + perjuicio procesal grave'
+            },
+            {
+              id: 13,
+              categoria: 'legal',
+              pregunta: 'Normativa AESA publicada oficialmente',
+              keywords: ['normativa', 'ley', 'reglamento', 'aesa', 'regulacion'],
+              semaforo: 'permitido',
+              respuestaCorta: 'PERMITIDO - Normativa pública = uso libre',
+              explicacion: 'Leyes, reglamentos y circulares públicas son información oficial.',
+              baseLegal: 'Información pública = formación y compliance',
+              alternativa: '✅ Excelente para formación y consultas de compliance',
+              multa: 'N/A - Permitido'
+            },
+            {
+              id: 14,
+              categoria: 'it',
+              pregunta: 'Código fuente de aplicación interna',
+              keywords: ['codigo', 'source', 'programa', 'software'],
+              semaforo: 'prohibido',
+              respuestaCorta: 'PROHIBIDO - Propiedad intelectual + vulnerabilidades',
+              explicacion: 'Código fuente = PI + puede revelar vulnerabilidades de seguridad.',
+              baseLegal: 'Art. 96 Ley PI. Ley 1/2019 secretos. Facilita ciberataques',
+              alternativa: '✅ Puedes: Preguntar genéricamente sin subir código propio',
+              multa: 'Pérdida IP + riesgo ciberseguridad'
+            },
+            {
+              id: 15,
+              categoria: 'it',
+              pregunta: 'Contraseña o credencial de acceso',
+              keywords: ['password', 'contraseña', 'credencial', 'login'],
+              semaforo: 'prohibido',
+              respuestaCorta: 'TOTALMENTE PROHIBIDO - Posible delito informático',
+              explicacion: 'Subir credenciales = brecha de seguridad directa. Delito si hay acceso no autorizado.',
+              baseLegal: 'RGPD Art. 32 + Código Penal Art. 197 delito informático',
+              alternativa: '❌ NUNCA subir - Usar gestores de contraseñas corporativos',
+              multa: 'Responsabilidad penal + sanciones RGPD'
+            },
+            {
+              id: 16,
+              categoria: 'cliente',
+              pregunta: 'Reclamación de cliente con sus datos',
+              keywords: ['reclamacion', 'queja', 'complaint'],
+              semaforo: 'cuidado',
+              respuestaCorta: 'CUIDADO - Solo si está completamente anonimizada',
+              explicacion: 'Las reclamaciones contienen datos personales y a veces datos de salud.',
+              baseLegal: 'RGPD Art. 6 + puede contener Art. 9 datos salud',
+              alternativa: '✅ Puedes: Analizar TIPO de reclamación sin identificar cliente',
+              multa: 'Hasta 20M€ o 4% facturación si datos salud'
+            },
+            {
+              id: 17,
+              categoria: 'cliente',
+              pregunta: 'FAQ de nuestra web ya publicado',
+              keywords: ['faq', 'preguntas frecuentes', 'web publica'],
+              semaforo: 'permitido',
+              respuestaCorta: 'PERMITIDO - Contenido público propio',
+              explicacion: 'Vuestro contenido ya publicado es de uso libre interno.',
+              baseLegal: 'Información ya pública propia = sin restricción',
+              alternativa: '✅ Úsalo para mejorar respuestas, actualizarlo, etc.',
+              multa: 'N/A - Permitido'
+            },
+            {
+              id: 18,
+              categoria: 'personal',
+              pregunta: 'Mi propio CV para mejorarlo',
+              keywords: ['mi cv', 'mi curriculum', 'propio'],
+              semaforo: 'permitido',
+              respuestaCorta: 'PERMITIDO - TUS datos personales = TÚ decides',
+              explicacion: 'Tienes control total sobre tus propios datos personales.',
+              baseLegal: 'RGPD Art. 6.1.a consentimiento propio',
+              alternativa: '✅ Puedes usar IA para mejorar tu CV, carta, etc.',
+              multa: 'N/A - Permitido'
+            },
+            {
+              id: 19,
+              categoria: 'rrhh',
+              pregunta: 'Estadísticas de rotación sin nombres',
+              keywords: ['rotacion', 'turnover', 'estadisticas', 'agregado'],
+              semaforo: 'permitido',
+              respuestaCorta: 'PERMITIDO - Datos agregados sin identificar personas',
+              explicacion: 'Estadísticas agregadas que no permiten identificar personas = permitido.',
+              baseLegal: 'RGPD no aplica a datos verdaderamente agregados y anónimos',
+              alternativa: '✅ Perfecto para análisis de tendencias y gestión',
+              multa: 'N/A - Permitido'
+            },
+            {
+              id: 20,
+              categoria: 'operaciones',
+              pregunta: 'Manual de fabricante de aeronave (público)',
+              keywords: ['manual fabricante', 'manual publico', 'airbus', 'boeing'],
+              semaforo: 'permitido',
+              respuestaCorta: 'PERMITIDO - Manuales públicos del fabricante',
+              explicacion: 'Manuales públicos de fabricantes son información accesible.',
+              baseLegal: 'Documentación pública de fabricante = uso permitido',
+              alternativa: '⚠️ CUIDADO: Si tiene anotaciones propias = NO subir anotaciones',
+              multa: 'N/A - Permitido (solo manual público)'
+            }
+          ];
+
+          const filteredCasos = casosData.filter(caso => {
+            const matchCategory = selectedCategory === 'todos' || caso.categoria === selectedCategory;
+            const matchSearch = searchTerm === '' || 
+              caso.pregunta.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              caso.keywords.some(kw => kw.toLowerCase().includes(searchTerm.toLowerCase()));
+            return matchCategory && matchSearch;
+          });
+
+          const getSemaforoColor = (semaforo) => {
+            switch(semaforo) {
+              case 'prohibido': return 'bg-red-100 border-red-500 text-red-900';
+              case 'cuidado': return 'bg-yellow-100 border-yellow-500 text-yellow-900';
+              case 'permitido': return 'bg-green-100 border-green-500 text-green-900';
+              default: return 'bg-gray-100';
+            }
+          };
+
+          const getSemaforoText = (semaforo) => {
+            switch(semaforo) {
+              case 'prohibido': return '🔴 PROHIBIDO';
+              case 'cuidado': return '🟡 CUIDADO';
+              case 'permitido': return '🟢 PERMITIDO';
+              default: return '';
+            }
+          };
+
+          return (
+            <div style={{minHeight: '100vh', background: 'linear-gradient(to bottom right, #dbeafe, #e0e7ff)', padding: '1rem'}}>
+              <div style={{maxWidth: '1280px', margin: '0 auto'}}>
+                <div style={{background: 'white', borderRadius: '1rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '1.5rem', marginBottom: '1.5rem'}}>
+                  <h1 style={{fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                    <span style={{fontSize: '2.5rem'}}>🔍</span>
+                    ¿Puedo Subirlo a Gemini/NotebookLM?
+                  </h1>
+                  <p style={{color: '#6b7280', marginBottom: '1rem'}}>Consulta rápida para saber qué datos puedes usar en las herramientas IA de Binter</p>
+                  
+                  <div style={{marginTop: '1rem', position: 'relative'}}>
+                    <input
+                      type="text"
+                      placeholder="Busca por tipo de dato: DNI, contrato, email, precio..."
+                      style={{width: '100%', paddingLeft: '2.5rem', paddingRight: '1rem', paddingTop: '0.75rem', paddingBottom: '0.75rem', border: '2px solid #d1d5db', borderRadius: '0.5rem', fontSize: '1.125rem'}}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div style={{background: 'white', borderRadius: '1rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '1rem', marginBottom: '1.5rem'}}>
+                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '0.5rem'}}>
+                    {categories.map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(cat.id)}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          borderRadius: '0.5rem',
+                          fontWeight: '600',
+                          border: 'none',
+                          cursor: 'pointer',
+                          background: selectedCategory === cat.id ? '#2563eb' : '#f3f4f6',
+                          color: selectedCategory === cat.id ? 'white' : '#374151',
+                          transform: selectedCategory === cat.id ? 'scale(1.05)' : 'scale(1)',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {cat.icon} {cat.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem', marginBottom: '1.5rem'}}>
+                  {filteredCasos.map(caso => (
+                    <div
+                      key={caso.id}
+                      onClick={() => setSelectedResult(caso)}
+                      className={getSemaforoColor(caso.semaforo)}
+                      style={{
+                        cursor: 'pointer',
+                        borderRadius: '0.75rem',
+                        borderLeft: '4px solid',
+                        padding: '1rem',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.2)'}}
+                      onMouseLeave={(e) => {e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'}}
+                    >
+                      <h3 style={{fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.5rem'}}>{caso.pregunta}</h3>
+                      <p style={{fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem'}}>{getSemaforoText(caso.semaforo)}</p>
+                      <p style={{fontSize: '0.875rem', opacity: 0.9}}>{caso.respuestaCorta}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {filteredCasos.length === 0 && (
+                  <div style={{background: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '3rem', textAlign: 'center'}}>
+                    <p style={{color: '#9ca3af', fontSize: '1.25rem'}}>No se encontraron resultados para "{searchTerm}"</p>
+                    <p style={{color: '#d1d5db', marginTop: '0.5rem'}}>Intenta con otros términos: DNI, email, contrato, precio, normativa...</p>
+                  </div>
+                )}
+
+                {selectedResult && (
+                  <div style={{position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 50}} onClick={() => setSelectedResult(null)}>
+                    <div className={getSemaforoColor(selectedResult.semaforo)} style={{maxWidth: '48rem', width: '100%', borderRadius: '0.75rem', padding: '2rem', maxHeight: '90vh', overflowY: 'auto'}} onClick={(e) => e.stopPropagation()}>
+                      <div style={{display: 'flex', alignItems: 'start', gap: '1rem', marginBottom: '1.5rem'}}>
+                        <div style={{flex: 1}}>
+                          <h2 style={{fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem'}}>{selectedResult.pregunta}</h2>
+                          <p style={{fontSize: '1.25rem', fontWeight: 'bold'}}>{getSemaforoText(selectedResult.semaforo)}</p>
+                        </div>
+                        <button 
+                          onClick={() => setSelectedResult(null)}
+                          style={{fontSize: '1.5rem', fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer'}}
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <div style={{display: 'flex', flexDirection: 'column', gap: '1.5rem'}}>
+                        <div style={{background: 'rgba(255,255,255,0.7)', borderRadius: '0.5rem', padding: '1rem'}}>
+                          <h3 style={{fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.5rem'}}>Respuesta Corta</h3>
+                          <p style={{fontSize: '1.125rem', fontWeight: '600'}}>{selectedResult.respuestaCorta}</p>
+                        </div>
+
+                        <div style={{background: 'rgba(255,255,255,0.7)', borderRadius: '0.5rem', padding: '1rem'}}>
+                          <h3 style={{fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.5rem'}}>📖 Explicación</h3>
+                          <p>{selectedResult.explicacion}</p>
+                        </div>
+
+                        <div style={{background: 'rgba(255,255,255,0.7)', borderRadius: '0.5rem', padding: '1rem'}}>
+                          <h3 style={{fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.5rem'}}>⚖️ Base Legal</h3>
+                          <p style={{fontSize: '0.875rem'}}>{selectedResult.baseLegal}</p>
+                        </div>
+
+                        <div style={{background: 'rgba(255,255,255,0.7)', borderRadius: '0.5rem', padding: '1rem'}}>
+                          <h3 style={{fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.5rem'}}>💡 {selectedResult.semaforo === 'prohibido' ? 'Alternativa' : 'Recomendación'}</h3>
+                          <p style={{fontWeight: '600'}}>{selectedResult.alternativa}</p>
+                        </div>
+
+                        {selectedResult.multa && selectedResult.semaforo !== 'permitido' && (
+                          <div style={{background: '#7f1d1d', color: 'white', borderRadius: '0.5rem', padding: '1rem'}}>
+                            <h3 style={{fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.5rem'}}>⚠️ Riesgo Legal</h3>
+                            <p style={{fontWeight: '600'}}>{selectedResult.multa}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => setSelectedResult(null)}
+                        style={{marginTop: '1.5rem', width: '100%', background: '#1f2937', color: 'white', padding: '0.75rem', borderRadius: '0.5rem', fontWeight: 'bold', border: 'none', cursor: 'pointer'}}
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div style={{background: 'white', borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', padding: '1.5rem', marginTop: '1.5rem', textAlign: 'center'}}>
+                  <p style={{color: '#6b7280', marginBottom: '0.5rem'}}>
+                    <strong>¿Dudas?</strong> Consulta siempre con Legal o Compliance antes de subir información sensible
+                  </p>
+                  <p style={{fontSize: '0.875rem', color: '#9ca3af'}}>
+                    Versión Enterprise Google Workspace • Datos NO se usan para entrenar IA • Cumplimiento RGPD + AI Act
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        ReactDOM.render(<PuedoSubirloApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
