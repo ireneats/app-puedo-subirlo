@@ -1,5 +1,5 @@
 ---
-name: "[EPIC] Historia principal con sub-issues"
+name: "[F] Historia principal con sub-issues"
 about: 'Describe la finalidad de esta funcionalidad. '
 title: "[EPIC] Nombre de la funcionalidad "
 labels: epic
@@ -7,11 +7,10 @@ assignees: ''
 
 ---
 
-## 🎯 Epic Overview
-(Describe el objetivo general de este Epic en 2-3 líneas. Ej: "Implementar sistema de autenticación completo con OAuth2, JWT y gestión de sesiones")
+## 🎯 Feature overview
+(Describe el objetivo general de este funcionalidad en 2-3 líneas. Ej: "Implementar sistema de autenticación completo con OAuth2, JWT y gestión de sesiones")
 
-## 📊 Sub-issues
-(Vincula aquí todos los sub-issues. GitHub calculará el progreso automáticamente)
+## 📊 Issues/Historias
 - [ ] #(número) - (Nombre corto del sub-issue)
 - [ ] #(número) - (Nombre corto del sub-issue)
 - [ ] #(número) - (Nombre corto del sub-issue)
@@ -24,6 +23,5 @@ assignees: ''
 (Información adicional, contexto técnico, decisiones importantes o dependencias externas)
 
 ---
-**Labels:** `epic`, (agrega: componente, prioridad, etc)
-**Milestone:** (Selecciona el milestone/versión correspondiente)
-**Assignee:** (Quien lidera este Epic)
+**Labels:** `feature`, 
+**Milestone:** (Selecciona el milestone/épica)
